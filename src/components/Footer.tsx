@@ -7,8 +7,9 @@ export default function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-4">
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/legacy/img/logo.png" alt="Nutting House" className="h-12 w-auto rounded-lg bg-stone-100 px-2 py-1" />
-          <p className="mt-4 text-sm leading-relaxed text-stone-300">
+          <img src="/legacy/img/logo.png" alt="Nutting House nut mark" className="logo-glow h-12 w-auto" />
+          <p className="font-display mt-3 text-xl text-white">Nutting House</p>
+          <p className="mt-2 text-sm leading-relaxed text-stone-300">
             {SITE.tagline}. {SITE.grading}. Sprawling lawns, mountain sunsets and a dam that slows time — 21 years in the making.
           </p>
         </div>

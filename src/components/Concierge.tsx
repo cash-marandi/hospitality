@@ -73,10 +73,11 @@ export default function Concierge() {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-900 text-2xl text-white shadow-xl hover:bg-forest-800"
-        aria-label="Chat"
+        className="flex h-12 items-center gap-2 rounded-full bg-forest-900 px-5 text-sm font-semibold text-white shadow-xl hover:bg-forest-800 focus-visible:outline-2 focus-visible:outline-clay-500"
+        aria-label={open ? "Close concierge chat" : "Open concierge chat"}
+        aria-expanded={open}
       >
-        {open ? "×" : "◍"}
+        <span aria-hidden="true">{open ? "×" : "✦"}</span> {open ? "Close" : "Chat"}
       </button>
     </div>
   );

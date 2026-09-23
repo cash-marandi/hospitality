@@ -19,7 +19,7 @@ export default function Navbar() {
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between gap-3 rounded-2xl border border-white/20 bg-forest-950/80 px-4 py-3 text-stone-100 shadow-xl backdrop-blur-md">
         <Link href="/" className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/legacy/img/logo_sticky.png" alt="Nutting House" className="h-9 w-auto rounded-md bg-stone-100 px-1" />
+          <img src="/legacy/img/logo.png" alt="Nutting House nut mark" className="logo-glow h-10 w-auto" />
           <span className="leading-tight">
             <span className="font-display block text-lg tracking-wide">Nutting House</span>
             <span className="block text-[11px] uppercase tracking-[0.2em] text-stone-300">Mbombela · Lowveld</span>
