@@ -30,10 +30,10 @@ export default function Home() {
     <div>
       <FaqSchema />
       {/* HERO */}
-      <section className="hero-grain relative flex min-h-[92vh] items-end overflow-hidden bg-forest-950 text-white">
+      <section className="hero-grain relative -mt-20 flex min-h-[78svh] items-end overflow-hidden bg-forest-950 text-white">
         <HeroSlideshow />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-950/95 via-forest-950/35 to-forest-950/20" />
-        <div className="relative mx-auto w-full max-w-6xl px-6 pb-14 pt-40">
+        <div className="relative mx-auto w-full max-w-6xl px-6 pb-12 pt-36">
           <Reveal>
             <p className="text-xs uppercase tracking-[0.35em] text-stone-300">Mbombela · Mpumalanga · Est. 21 years</p>
             <h1 className="font-display mt-4 max-w-3xl text-5xl leading-[1.02] md:text-7xl">
@@ -42,7 +42,7 @@ export default function Home() {
             <p className="mt-5 max-w-xl text-lg text-stone-200">
               Sleep over, marry here, or host 800 delegates in one hall — on lawns that slow time down.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
                 href="/book"
                 className="rounded-full bg-clay-500 px-8 py-4 font-semibold text-white shadow-xl transition hover:bg-clay-600 focus-visible:outline-2 focus-visible:outline-white"
@@ -57,7 +57,7 @@ export default function Home() {
               </Link>
             </div>
             <p className="mt-3 text-sm text-stone-200">30-second quote · No card needed</p>
-            <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/15 pt-5 text-xs uppercase tracking-[0.2em] text-stone-300">
+            <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/15 pt-4 text-xs uppercase tracking-[0.2em] text-stone-300">
               <li>21 years in the Lowveld</li>
               <li>4 private venues</li>
               <li>Weddings · Conferences · Family stays</li>

@@ -10,11 +10,11 @@ export const metadata = {
 export default function Weddings() {
   return (
     <div>
-      <section className="relative overflow-hidden bg-forest-950 text-white">
+      <section className="relative -mt-20 overflow-hidden bg-forest-950 text-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/legacy/img/blog-3.jpg" alt="Dam wedding venue" className="absolute inset-0 h-full w-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-950 via-forest-950/40 to-transparent" />
-        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
+        <div className="relative mx-auto max-w-4xl px-6 pb-20 pt-36 text-center">
           <Reveal>
             <p className="text-xs uppercase tracking-[0.3em] text-stone-300">Weddings</p>
             <h1 className="font-display mt-3 text-5xl md:text-6xl">Arrive. Marry. Remember.</h1>
