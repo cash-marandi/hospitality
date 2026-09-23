@@ -1,6 +1,10 @@
 import Reveal from "@/components/Reveal";
 
-export const metadata = { title: "Explore Mbombela & the Lowveld | Nutting House" };
+export const metadata = {
+  title: "Explore Mbombela, Kruger & Blyde Canyon",
+  description: "Stay before your Kruger safari: Blyde River Canyon, macadamia orchards, Mbombela city and on-site pools, lawns and dam birdlife.",
+  alternates: { canonical: "/explore" },
+};
 
 const CARDS = [
   { img: "/legacy/img/att.jpg", t: "Kruger National Park", d: "Big-five day trips — we pack breakfast and arrange shuttles." },

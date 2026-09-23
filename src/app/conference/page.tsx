@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import QuoteCard from "@/components/QuoteCard";
 import Reveal from "@/components/Reveal";
@@ -8,6 +8,7 @@ import type { VenueQuote } from "@/lib/quote";
 
 function ConfForm() {
   const params = useSearchParams();
+  const today = new Date().toISOString().slice(0, 10);
   const [venueSlug, setVenueSlug] = useState(params.get("venue") ?? "main-hall");
   const [date, setDate] = useState("");
   const [days, setDays] = useState(1);
@@ -26,7 +27,25 @@ function ConfForm() {
   const [error, setError] = useState("");
 
   const venue = useMemo(() => VENUES.find((v) => v.slug === venueSlug) ?? VENUES[0], [venueSlug]);
-  const valid = date && pax > 0 && name && (email || phone);
+  const valid = date && date >= today && pax > 0 && name && (email || phone);
+  const [avail, setAvail] = useState<{ key: string; msg: string } | null>(null);
+  const availKey = `${venueSlug}|${date}|${days}`;
+  const liveAvail = avail && avail.key === availKey ? avail.msg : "";
+  useEffect(() => {
+    if (!(venueSlug && date && date >= today)) return;
+    const key = `${venueSlug}|${date}|${days}`;
+    let dead = false;
+    fetch(`/api/availability?kind=venue&venueSlug=${venueSlug}&date=${date}&days=${days}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (dead) return;
+        if (d.ok && !d.available) setAvail({ key, msg: "Already held — try another date or venue." });
+      })
+      .catch(() => {});
+    return () => {
+      dead = true;
+    };
+  }, [venueSlug, date, days, today]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +62,13 @@ function ConfForm() {
         body: JSON.stringify({ kind: "venue", input: { venueSlug, date, days, pax, layout, catering, extras: { av, decor, bar }, name, email, phone, notes } }),
       });
       const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const issues = data?.issues?.fieldErrors
+          ? Object.values(data.issues.fieldErrors).flat().join(" ")
+          : "";
+        setError((data.error || "Could not generate estimate.") + (issues ? ` ${issues}` : ""));
+        return;
+      }
       setQuote(data.quote);
       try {
         const key = "nh-quotes";
@@ -95,7 +121,7 @@ function ConfForm() {
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            <label className="text-sm font-semibold">Date*<input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold">Date*<input type="date" required min={today} value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
             <label className="text-sm font-semibold">Days
               <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="mt-1 w-full rounded-xl border px-3 py-2.5">
                 {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
@@ -136,7 +162,8 @@ function ConfForm() {
             <label className="text-sm font-semibold sm:col-span-2">Notes (dietary, programme, breakaways)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
           </div>
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-          <button disabled={loading} className="rounded-full bg-clay-500 px-8 py-4 font-semibold text-white hover:bg-clay-600 disabled:opacity-50">
+          {liveAvail && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{liveAvail}</p>}
+          <button disabled={loading || !!liveAvail} className="rounded-full bg-clay-500 px-8 py-4 font-semibold text-white hover:bg-clay-600 disabled:opacity-50">
             {loading ? "Calculating…" : "Generate event estimate →"}
           </button>
         </div>

@@ -44,8 +44,8 @@ export const ROOMS: Room[] = [
     sleeps: 4,
     beds: "King + twin beds",
     perks: ["Sleeps 4", "Aircon", "DSTV", "Tea & coffee station", "Mini bar fridge", "Child-friendly pools nearby"],
-    image: "/legacy/img/rooms/2b.jpg",
-    gallery: ["/legacy/img/rooms/2b.jpg", "/legacy/img/rooms/opt_2b.jpg", "/legacy/img/rooms/opt_5b.jpg"],
+    image: "/legacy/img/rooms/opt_4.jpg",
+    gallery: ["/legacy/img/rooms/opt_4.jpg", "/legacy/img/rooms/opt_2b.jpg", "/legacy/img/rooms/opt_5b.jpg"],
   },
   {
     slug: "executive",

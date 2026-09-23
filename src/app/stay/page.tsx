@@ -2,7 +2,11 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { ROOMS, zar } from "@/lib/data";
 
-export const metadata = { title: "Stay · Rooms & rates | Nutting House" };
+export const metadata = {
+  title: "Stay · Rooms & rates from R950",
+  description: "Standard, Executive and Family rooms in Mbombela with aircon, DSTV, WiFi and breakfast options. Instant EFT quotation, no card needed.",
+  alternates: { canonical: "/stay" },
+};
 
 export default function Stay() {
   return (

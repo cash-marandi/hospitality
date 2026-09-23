@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import QuoteCard from "@/components/QuoteCard";
 import Reveal from "@/components/Reveal";
@@ -9,6 +9,7 @@ import { Suspense } from "react";
 
 function BookForm() {
   const params = useSearchParams();
+  const today = new Date().toISOString().slice(0, 10);
   const [roomSlug, setRoomSlug] = useState(params.get("room") ?? "standard");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -24,9 +25,33 @@ function BookForm() {
   const [loading, setLoading] = useState(false);
   const [quote, setQuote] = useState<StayQuote | null>(null);
   const [error, setError] = useState("");
+  const [avail, setAvail] = useState<{ key: string; state: "checking" | "free" | "taken"; msg: string } | null>(null);
 
   const room = useMemo(() => ROOMS.find((r) => r.slug === roomSlug) ?? ROOMS[0], [roomSlug]);
-  const valid = checkIn && checkOut && new Date(checkOut) > new Date(checkIn) && name && (email || phone);
+  const datesValid = !!checkIn && !!checkOut && new Date(checkOut) > new Date(checkIn);
+  const valid = datesValid && checkIn >= today && name && (email || phone);
+  const availKey = `${roomSlug}|${checkIn}|${checkOut}`;
+  // Only show availability for the currently-entered dates (ignores stale async results).
+  const liveAvail = avail && avail.key === availKey ? avail : null;
+
+  // Live availability check (server-backed when Mongo is configured).
+  // Writes state only inside the async fetch callback — never synchronously.
+  useEffect(() => {
+    if (!datesValid) return;
+    const key = `${roomSlug}|${checkIn}|${checkOut}`;
+    let dead = false;
+    fetch(`/api/availability?kind=stay&roomSlug=${roomSlug}&checkIn=${checkIn}&checkOut=${checkOut}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (dead) return;
+        if (d.ok && d.available) setAvail({ key, state: "free", msg: "Available for those dates ✓" });
+        else if (d.ok) setAvail({ key, state: "taken", msg: "Already held — try nearby dates or WhatsApp us." });
+      })
+      .catch(() => {});
+    return () => {
+      dead = true;
+    };
+  }, [roomSlug, checkIn, checkOut, datesValid]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +71,13 @@ function BookForm() {
         }),
       });
       const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const issues = data?.issues?.fieldErrors
+          ? Object.values(data.issues.fieldErrors).flat().join(" ")
+          : "";
+        setError(data.error || "Could not generate quotation." + (issues ? ` ${issues}` : ""));
+        return;
+      }
       setQuote(data.quote);
       try {
         const key = "nh-quotes";
@@ -113,8 +145,8 @@ function BookForm() {
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-semibold">Check-in<input type="date" required value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
-            <label className="text-sm font-semibold">Check-out<input type="date" required value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold">Check-in<input type="date" required min={today} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold">Check-out<input type="date" required min={today} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
             <label className="text-sm font-semibold">Adults
               <select value={adults} onChange={(e) => setAdults(Number(e.target.value))} className="mt-1 w-full rounded-xl border px-3 py-2.5">
                 {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
@@ -139,13 +171,22 @@ function BookForm() {
             ))}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-semibold">Full name*<input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Thandi Mokoena" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
-            <label className="text-sm font-semibold">Phone*<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="072 000 0000" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
-            <label className="text-sm font-semibold sm:col-span-2">Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.co.za" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold">Full name*<input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Thandi Mokoena" autoComplete="name" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold">Phone (or email below)*<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="072 000 0000" autoComplete="tel" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
+            <label className="text-sm font-semibold sm:col-span-2">Email (or phone above)*<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.co.za" autoComplete="email" className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
             <label className="text-sm font-semibold sm:col-span-2">Notes (dietary, cot, arrival time)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1 w-full rounded-xl border px-3 py-2.5" /></label>
           </div>
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-          <button disabled={loading} className="rounded-full bg-forest-900 px-8 py-4 font-semibold text-white hover:bg-forest-800 disabled:opacity-50">
+          {liveAvail && (
+            <p
+              className={`rounded-xl px-4 py-3 text-sm ${
+                liveAvail.state === "free" ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-800"
+              }`}
+            >
+              {liveAvail.msg}
+            </p>
+          )}
+          <button disabled={loading || liveAvail?.state === "taken"} className="rounded-full bg-forest-900 px-8 py-4 font-semibold text-white hover:bg-forest-800 disabled:opacity-50">
             {loading ? "Generating quotation…" : "Generate my quotation →"}
           </button>
           <p className="text-xs text-ink-600">No payment now. You&apos;ll get reference + EFT details next.</p>

@@ -1,7 +1,11 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 
-export const metadata = { title: "Weddings | Nutting House" };
+export const metadata = {
+  title: "Weddings at the dam & garden chapel",
+  description: "Mbombela wedding venue: terrace garden chapel or Edamini dam at golden hour. One coordinator, milestone EFT payments. Price your date instantly.",
+  alternates: { canonical: "/weddings" },
+};
 
 export default function Weddings() {
   return (

@@ -2,7 +2,11 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { VENUES, zar } from "@/lib/data";
 
-export const metadata = { title: "Venues | Nutting House" };
+export const metadata = {
+  title: "Venues · Main Hall, Rali's Rock & the Dam",
+  description: "4 detached private venues in Mbombela: Main Hall to 800, Rali's Rock sunsets, Edamini dam weddings, boardrooms. Instant event estimates.",
+  alternates: { canonical: "/venues" },
+};
 
 export default function Venues() {
   return (

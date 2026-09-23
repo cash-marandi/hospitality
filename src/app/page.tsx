@@ -27,7 +27,7 @@ export default function Home() {
               A serene home, <em className="text-stone-200">away</em> from home.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-stone-200">
-              Sprawling lawns, Lowveld sunsets, a dam that slows time. Sleep over, marry here, or bring 2 000 delegates — you only have to arrive.
+              Sprawling lawns, Lowveld sunsets, a dam that slows time. Sleep over, marry here, or bring 800 delegates in one hall — 2 000+ on a full-property buyout. You only have to arrive.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/book" className="rounded-full bg-clay-500 px-7 py-3.5 font-semibold text-white shadow-xl hover:bg-clay-600">
@@ -46,7 +46,7 @@ export default function Home() {
       <div className="overflow-hidden border-y border-forest-800/10 bg-stone-200 py-3">
         <div className="marquee-track flex w-max gap-10 text-sm uppercase tracking-[0.3em] text-forest-800">
           {Array.from({ length: 2 }).flatMap((_, k) =>
-            ["Family rooms", "Weddings at the dam", "Conferences to 2000+", "Rali's Rock sunsets", "Pools & lawns", "Bar & buffet"].map((t, i) => (
+            ["Family rooms", "Weddings at the dam", "800 in one hall", "Rali's Rock sunsets", "Pools & lawns", "Bar & buffet"].map((t, i) => (
               <span key={`${k}-${i}`}>✦ {t}</span>
             ))
           )}
@@ -71,7 +71,7 @@ export default function Home() {
             </p>
             <div className="mt-6 grid grid-cols-3 gap-4 rounded-2xl bg-forest-900 p-6 text-white">
               <Stat n="21+" label="Years" />
-              <Stat n="2000+" label="Delegates" />
+              <Stat n="800+" label="One hall" />
               <Stat n="4" label="Venues" />
             </div>
             <Link href="/stay" className="mt-6 inline-block font-semibold text-clay-600 underline">Sleep here first →</Link>

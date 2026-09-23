@@ -1,5 +1,7 @@
-import { BANKING, SITE } from "@/lib/site";
+"use client";
+import { BANKING, BANKING_CONFIGURED, SITE } from "@/lib/site";
 import { zar } from "@/lib/data";
+import ProofUpload from "./ProofUpload";
 
 export default function QuoteCard({
   title,
@@ -47,14 +49,25 @@ export default function QuoteCard({
         <p className="mt-2 text-sm">
           Deposit to secure (50%): <strong>{zar(depositDue)}</strong> · Balance on arrival.
         </p>
-        <div className="mt-4 rounded-xl border border-dashed border-clay-500/60 bg-stone-100 p-4 text-sm">
-          <p className="font-semibold">Pay via EFT (manual) — no card needed</p>
-          <p className="mt-1">Bank: {BANKING.bank}</p>
-          <p>Account: {BANKING.accountName} · {BANKING.accountNumber}</p>
-          <p>Branch: {BANKING.branchCode} · {BANKING.accountType}</p>
-          <p className="mt-1 font-medium">Reference: {reference}</p>
-          <p className="mt-1 text-xs text-ink-600">{BANKING.referenceNote}</p>
-        </div>
+        {BANKING_CONFIGURED ? (
+          <div className="mt-4 rounded-xl border border-dashed border-clay-500/60 bg-stone-100 p-4 text-sm">
+            <p className="font-semibold">Pay via EFT (manual) — no card needed</p>
+            <p className="mt-1">Bank: {BANKING.bank}</p>
+            <p>Account: {BANKING.accountName} · {BANKING.accountNumber}</p>
+            <p>Branch: {BANKING.branchCode} · {BANKING.accountType}</p>
+            <p className="mt-1 font-medium">Reference: {reference}</p>
+            <p className="mt-1 text-xs text-ink-600">{BANKING.referenceNote}</p>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-dashed border-clay-500/60 bg-stone-100 p-4 text-sm">
+            <p className="font-semibold">EFT details on confirmation</p>
+            <p className="mt-1 text-xs text-ink-600">
+              Send this reference on WhatsApp and we will reply with banking details + availability confirmation within one working day.
+            </p>
+            <p className="mt-1 font-medium">Reference: {reference}</p>
+          </div>
+        )}
+        <ProofUpload reference={reference} />
         <div className="no-print mt-4 grid gap-2 sm:grid-cols-3">
           <a href={wa} target="_blank" className="rounded-full bg-[#25D366] px-4 py-2.5 text-center text-sm font-semibold text-white">
             Send via WhatsApp

@@ -1,7 +1,11 @@
 import Reveal from "@/components/Reveal";
 import { SITE } from "@/lib/site";
 
-export const metadata = { title: "Contact | Nutting House" };
+export const metadata = {
+  title: "Contact · Plot 6 Burnside Road, Mbombela",
+  description: "Visit Nutting House: Plot 6 Burnside Road, Mbombela 1201. Call +27 72 414 4722, WhatsApp or email info@nuttinghouse.co.za. Google Maps pin inside.",
+  alternates: { canonical: "/contact" },
+};
 
 export default function Contact() {
   const wa = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent("Hello Nutting House! I'd like to check availability.")}`;

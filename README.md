@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nutting House · Mbombela
 
-## Getting Started
+Next.js lodge / weddings / conferences site with instant EFT quotations.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Keys you must add (`.env.local`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Key | Where | Used for |
+| --- | --- | --- |
+| `MONGODB_URI` | MongoDB Atlas → Connect → Node driver | Stores quotes/bookings, availability holds, proof links |
+| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | Cloudinary → Dashboard | Proof-of-payment uploads (`nutting-house/proofs/`) |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | same as above | Enables `next/image` Cloudinary remote pattern |
+| `NEXT_PUBLIC_SITE_URL` | your domain | Canonical, sitemap, OG |
+| `ADMIN_KEY` | choose long random | Unlocks `/admin` server quotes + confirm/cancel |
+| `NEXT_PUBLIC_BANK_*` | your bank | EFT details on QuoteCard (hidden until set) |
 
-## Learn More
+Without Mongo/Cloudinary the app still runs in demo mode (local JSONL + this-device admin), but availability checks and server quotes need Mongo.
 
-To learn more about Next.js, take a look at the following resources:
+## Key routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/book` stay quotes · `/conference` event estimates · `/track` find booking by reference
+- `POST /api/quote` validated (zod), overlap-checked, saved to Mongo
+- `GET /api/availability?kind=stay&roomSlug&checkIn&checkOut`
+- `POST /api/upload` multipart `file + reference` → Cloudinary → links to quote
+- `GET /api/quote/[reference]` guest lookup · `PATCH` proof attach / admin status
+- `GET /api/admin/quotes` (header `x-admin-key`) → `/admin` dashboard
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## SEO/GEO
 
-## Deploy on Vercel
+- Global metadata + OG/Twitter + canonical in `src/app/layout.tsx`
+- Hotel JSON-LD (`HotelSchema`), geo meta (`geo.region ZA-MP`, ICBM), `sitemap.ts`, `robots.ts` (blocks `/admin`, `/api/`), `manifest.ts`
+- Per-page titles/descriptions/canonicals on stay, venues, weddings, explore, contact
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy (Vercel)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push to GitHub, import in Vercel
+2. Add all `.env.local` vars in Vercel → Environment Variables
+3. Deploy. Test `/api/availability` and a `/book` quote, then `/admin`.

@@ -5,7 +5,7 @@ import { SITE } from "@/lib/site";
 const FAQS: { q: string[]; a: string }[] = [
   { q: ["price", "cost", "rate", "much"], a: "Standard rooms from R950/night, Executive from R1 250 and Family from R1 450. Use 'Check availability' and you'll get an instant quotation with EFT details — no card needed." },
   { q: ["wedding", "bride", "marry"], a: "Yes — our Dam venue (Edamini) and terrace garden chapel are made for weddings. Open the Weddings page and send a venue quote request; the team replies with availability and a tailored estimate." },
-  { q: ["conference", "meeting", "delegate", "capacity", "2000"], a: "We host intimate boardrooms (1A & 1B) up to 2000+ delegates across 4 detached venues. Main Hall divides into 3. Try the Conference quote builder for an instant estimate." },
+  { q: ["conference", "meeting", "delegate", "capacity", "2000"], a: "We host intimate boardrooms (1A & 1B) up to 800 in the Main Hall and 2000+ on a full-property buyout across 4 detached venues. Try the Conference quote builder for an instant estimate." },
   { q: ["where", "location", "address", "directions", "map"], a: "Plot 6, Burnside Road, Mbombela, 1201 — close to KMIA airport and Kruger. Tap the Google Maps pin on the Contact page." },
   { q: ["check", "in", "out", "time"], a: "Check-in 14:00, check-out 10:00. Late checkout available as an extra when you book." },
   { q: ["pool", "swim", "kids", "child", "family"], a: "Multiple child-friendly pools, big lawns, DSTV, aircon and tea stations in every room. Families love the Family Room (sleeps 4)." },
