@@ -168,6 +168,28 @@ export default function Admin() {
         ))}
       </div>
 
+      <div className="no-print mt-8 grid gap-2 rounded-3xl bg-white p-5 shadow-lg sm:grid-cols-3 lg:grid-cols-4">
+        {[
+          ["/admin/briefing", "Morning briefing", "06:00 digest"],
+          ["/admin/arrivals", "Arrivals", "In & out today"],
+          ["/admin/functions", "Function sheets", "Events & groups"],
+          ["/admin/housekeeping", "Housekeeping", "Room queue"],
+          ["/admin/rota", "Rota & clock", "Shifts, leave"],
+          ["/admin/maintenance", "Maintenance", "Fix-it tickets"],
+          ["/admin/inbox", "Inbox", "Guest messages"],
+          ["/admin/catering", "Catering calc", "Quantities"],
+          ["/admin/incidents", "Incidents", "Log & found"],
+          ["/admin/dishes", "Kitchen posts", "Chef menu"],
+          ["/admin/blog", "Blog", "Stories"],
+          ["/track", "Guest lookup", "By reference"],
+        ].map(([href, t, d]) => (
+          <a key={href} href={href} className="rounded-2xl bg-stone-100 px-4 py-3 hover:bg-forest-900 hover:text-white">
+            <p className="text-sm font-semibold">{t}</p>
+            <p className="text-xs opacity-70">{d}</p>
+          </a>
+        ))}
+      </div>
+
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <div className="rounded-3xl bg-white p-6 shadow-lg">
           <h2 className="font-display text-2xl">Latest quotations {authed ? "(server)" : "(this device)"}</h2>
@@ -197,14 +219,16 @@ export default function Admin() {
                     </a>
                   )}
                   {authed && (
-                    <>
-                      <button onClick={() => void setStatus(q.reference, "confirmed")} className="rounded-full bg-green-700 px-3 py-1 font-semibold text-white">
-                        Confirm
-                      </button>
-                      <button onClick={() => void setStatus(q.reference, "cancelled")} className="rounded-full bg-red-700 px-3 py-1 font-semibold text-white">
-                        Cancel
-                      </button>
-                    </>
+                    <select
+                      value={q.status ?? "quoted"}
+                      onChange={(e) => void setStatus(q.reference, e.target.value)}
+                      className="rounded-full bg-forest-900 px-3 py-1 font-semibold text-white"
+                      aria-label={`Pipeline stage for ${q.reference}`}
+                    >
+                      {["quoted", "proof_received", "confirmed", "paid", "checked_in", "checked_out", "cancelled"].map((s) => (
+                        <option key={s} value={s}>{s.replace("_", " ")}</option>
+                      ))}
+                    </select>
                   )}
                 </div>
               </li>

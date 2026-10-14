@@ -15,11 +15,11 @@ export function cloud() {
   return cloudinary;
 }
 
-export async function uploadProof(buffer: Buffer, reference: string, mime: string) {
+export async function uploadProof(buffer: Buffer, reference: string, mime: string, folder = "proofs") {
   const ext = mime.includes("pdf") ? "pdf" : mime.includes("png") ? "png" : mime.includes("webp") ? "webp" : "jpg";
   const dataUri = `data:${mime};base64,${buffer.toString("base64")}`;
   const res = await cloud().uploader.upload(dataUri, {
-    folder: "nutting-house/proofs",
+    folder: `nutting-house/${folder}`,
     public_id: `${reference}-${Date.now()}`,
     resource_type: "image",
     format: ext === "pdf" ? undefined : ext,

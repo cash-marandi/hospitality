@@ -84,6 +84,7 @@ function TrackForm() {
             ]}
             whatsappText={`Hello Nutting House! Following up on ${quote.reference}. Name: ${quote.input.name}.`}
           />
+          <GuestMessage reference={quote.reference} />
         </div>
       )}
     </div>
@@ -95,5 +96,52 @@ export default function TrackPage() {
     <Suspense>
       <TrackForm />
     </Suspense>
+  );
+}
+
+function GuestMessage({ reference }: { reference: string }) {
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("");
+    if (!name.trim() || !text.trim()) {
+      setStatus("Add your name and message.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference, name: name.trim(), text: text.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Send failed");
+      setText("");
+      setStatus("Message sent — the team will reply on WhatsApp or email. ✓");
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Send failed. Please WhatsApp us instead.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-3xl border border-forest-800/15 bg-white p-6 shadow-lg">
+      <h2 className="font-display text-2xl">Message the team</h2>
+      <p className="mt-1 text-sm text-ink-600">Questions about {reference}? Write here — it lands in the staff inbox.</p>
+      <form onSubmit={send} className="mt-4 grid gap-2">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" autoComplete="name" className="w-full rounded-xl border px-3 py-2.5 text-sm" />
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} maxLength={1000} placeholder="e.g. Can we add one more night?" className="w-full rounded-xl border px-3 py-2.5 text-sm" />
+        <button disabled={busy} className="w-fit rounded-full bg-forest-900 px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          {busy ? "Sending…" : "Send message →"}
+        </button>
+      </form>
+      {status && <p className="mt-3 text-sm font-medium">{status}</p>}
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasCloudinary, hasMongo } from "@/lib/env";
+import { env, hasCloudinary, hasMongo } from "@/lib/env";
 import { uploadProof } from "@/lib/cloudinary";
 import { dbConnect } from "@/lib/db";
 import { QuoteModel } from "@/models/Quote";
@@ -22,8 +22,15 @@ export async function POST(req: NextRequest) {
   }
   const file = form.get("file");
   const reference = String(form.get("reference") ?? "").trim();
-  if (!(file instanceof File) || !reference) {
-    return NextResponse.json({ ok: false, error: "file and reference are required" }, { status: 400 });
+  const folder = ["proofs", "maintenance", "food", "blog"].includes(String(form.get("folder")))
+    ? String(form.get("folder"))
+    : "proofs";
+  if (!(file instanceof File) || (folder === "proofs" && !reference)) {
+    return NextResponse.json({ ok: false, error: "file is required (proofs also need a reference)" }, { status: 400 });
+  }
+  // Staff folders need the staff key — guest proofs don't.
+  if (folder !== "proofs" && (!env.ADMIN_KEY || req.headers.get("x-admin-key") !== env.ADMIN_KEY)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
   if (!ALLOWED.includes(file.type)) {
     return NextResponse.json({ ok: false, error: "Only JPG, PNG, WebP or PDF proof allowed" }, { status: 415 });
@@ -33,8 +40,8 @@ export async function POST(req: NextRequest) {
   }
   const bytes = await file.arrayBuffer();
   try {
-    const up = await uploadProof(Buffer.from(bytes), reference, file.type);
-    if (hasMongo()) {
+    const up = await uploadProof(Buffer.from(bytes), reference || folder, file.type, folder);
+    if (folder === "proofs" && reference && hasMongo()) {
       await dbConnect();
       await QuoteModel.findOneAndUpdate(
         { reference },

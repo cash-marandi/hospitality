@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ reference
   if (req.headers.get("x-admin-key") !== env.ADMIN_KEY || !body?.status) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  if (!["quoted", "proof_received", "confirmed", "cancelled"].includes(body.status)) {
+  if (!["quoted", "proof_received", "confirmed", "paid", "checked_in", "checked_out", "cancelled"].includes(body.status)) {
     return NextResponse.json({ ok: false, error: "Invalid status" }, { status: 400 });
   }
   const q = await QuoteModel.findOneAndUpdate({ reference }, { status: body.status }, { new: true }).lean();

@@ -25,7 +25,7 @@ const QuoteSchema = new Schema(
     input: { type: Schema.Types.Mixed, required: true },
     status: {
       type: String,
-      enum: ["quoted", "proof_received", "confirmed", "cancelled"],
+      enum: ["quoted", "proof_received", "confirmed", "paid", "checked_in", "checked_out", "cancelled"],
       default: "quoted",
       index: true,
     },

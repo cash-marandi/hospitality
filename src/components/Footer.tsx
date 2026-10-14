@@ -29,6 +29,8 @@ export default function Footer() {
             <li><Link href="/weddings" className="hover:text-white">Weddings</Link></li>
             <li><Link href="/book" className="hover:text-white">Book / Get quotation</Link></li>
             <li><Link href="/track" className="hover:text-white">Find my booking</Link></li>
+            <li><Link href="/kitchen" className="hover:text-white">From the kitchen</Link></li>
+            <li><Link href="/blog" className="hover:text-white">Stories</Link></li>
           </ul>
         </div>
         <div>

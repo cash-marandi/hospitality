@@ -1,6 +1,7 @@
 # REPORT.md — Nutting House Web App: Complete Function & Feature Record
 
-> Generated 2026-09-23. Describes the application exactly as it stands in this working tree
+> Generated 2026-09-23, extended 2026-09-24 with the staff operations suite, kitchen and blog.
+> Describes the application exactly as it stands in this working tree
 > (commit base `c4879a4` on `origin/main` plus uncommitted work). Verify with `npx tsc --noEmit` and `npm run lint` (both clean).
 
 ---
@@ -85,15 +86,39 @@ Guest self-service: enter reference (e.g. `NH-STAY-2026-XXXXXX`) → `GET /api/q
 ### 4.9 `/contact` (`src/app/contact/page.tsx`)
 Address + Maps pin link, phone, email, WhatsApp + Email buttons, entrance photo, nudge to `/book` for quotations.
 
-### 4.10 `/admin` (`src/app/admin/page.tsx`, client)
-Staff dashboard. **Access:** locked behind `ADMIN_KEY` — password form stores key in `sessionStorage`, all server calls send `x-admin-key`. **Shows:** server pipeline stats (count, pipeline value, 50% deposit due) from `GET /api/admin/quotes`; latest 10 server quotes with status pills, proof links, **Confirm/Cancel** buttons (`PATCH /api/quote/[reference]`); without a key it falls back to this-device `localStorage` quotes. **Ops boards:** interactive housekeeping board (Ready/Cleaning/Inspection/Out of order, persisted to `localStorage nh-house`); static shifts roster with a "next steps" note (rota, leave, clock-in, maintenance tickets).
+### 4.11 `/kitchen` (`src/app/kitchen/page.tsx`, server)
+Public "From the kitchen" menu. **How it works:** queries MongoDB directly for `available: true` dishes, grouped in order Special → Breakfast → Mains → Dessert → Function, each with photo (`next/image`), description and optional ZAR price. Empty state nudges to WhatsApp. SEO title/description/canonical set; in sitemap; linked in footer. Chefs publish via `/admin/dishes`.
+
+### 4.12 `/blog` + `/blog/[slug]` (`src/app/blog/`, server)
+Public stories. Index shows published posts (cover, title, excerpt, date) linking to per-post pages with cover hero, paragraph rendering (blank line = new paragraph), per-post OG metadata + canonical, and a book/WhatsApp CTA band. Data comes straight from MongoDB (`published: true` only). Managed at `/admin/blog`.
+
+### 4.13 Staff operations suite (`/admin/*`, all staff-key gated via `AdminGate`)
+
+| # | Page | What staff do | Data source |
+|---|---|---|---|
+| 1 | `/admin/briefing` | Owner's 06:00 digest: arrival/departure counts, today's movement, upcoming events, money watch per status, housekeeping + maintenance needing attention, print button | `GET /api/admin/briefing` (also hit by Vercel cron at 04:00 UTC, `vercel.json`; accepts `Bearer CRON_SECRET` or staff key) |
+| 2 | `/admin/arrivals` | Front-desk board: checking-in vs checking-out today with names, rooms, pax, phones, references | Same briefing endpoint |
+| 3 | `/admin/functions` + `/admin/functions/[reference]` | Function sheets: upcoming confirmed events + group stays; each opens a printable sheet (client, venue, dates, setup, pax, catering, priced lines, total, proof link, print button) | `GET /api/admin/functions`, public `GET /api/quote/[reference]` |
+| 4 | `/admin/housekeeping` | Server-backed room task queue: add rooms, change state (Ready/Cleaning/Inspection/Out of order), notes, staff name | `GET/POST /api/admin/housekeeping` |
+| 5 | `/admin/rota` | Three tabs — Shifts (add/list upcoming by role, delete), Leave (request, approve/decline), Clock-in (name + in/out punches, latest log, **CSV hours export**) | `/api/admin/rota` (`GET/POST/PATCH/DELETE`, `?type=`, `?format=csv`) |
+| 6 | `/admin/maintenance` | Fix-it tickets: title, location, priority (urgent/routine/low), detail, assignee, Cloudinary photo (`maintenance` folder), status transitions | `GET/POST/PATCH /api/admin/maintenance` |
+| 7 | `/admin/inbox` | Guest message threads grouped by booking reference (count + last message), open thread view, staff replies | `GET/POST /api/admin/inbox` |
+| 8 | `/admin/catering` | Catering calculator (no server needed): pax 5–2000 × meal (breakfast / half-day / full-day / banquet) × wastage buffer % → ingredient order quantities + equipment checklist (plates, glasses, chairs, 8-seat tables…) | Pure client math |
+| 9 | `/admin/incidents` | Log complaints, incidents, lost & found with booking-ref link and reporter; resolve/reopen | `GET/POST/PATCH /api/admin/incidents` |
+| 10 | `/admin/dishes` | Chef posting: name, chef, description, optional price, category, Cloudinary photo (`food` folder), publish form; live/hidden toggle, delete | `GET/POST/PATCH/DELETE /api/admin/dishes` → renders on `/kitchen` |
+| 11 | `/admin/blog` | Blog manager: create draft (title, slug auto-generated, excerpt, cover via `blog` folder), body editor (blank line = paragraph), publish/unpublish, delete | `GET/POST/PATCH/DELETE /api/admin/posts` → renders on `/blog` |
+
+Shared staff UI: `src/components/ImageUpload.tsx` (file → `/api/upload` with folder + staff key). Non-proof upload folders require `x-admin-key` (`src/app/api/upload/route.ts`).
+
+### 4.14 Guest messaging (`/track` form + inbox)
+Below every looked-up quotation, guests can **Message the team** (name + text ≤1000 chars) via `POST /api/messages` (no key, but tied to a real reference). Messages appear in `/admin/inbox` threads where staff reply.
 
 ---
 
 ## 5. Global chrome (on every page via `src/app/layout.tsx`)
 
 - **Navbar** (`src/components/Navbar.tsx`, client): fixed floating frosted pill — transparent glowing nut-mark logo (`logo-glow` white drop-shadow, `public/legacy/img/logo.png`) + "Nutting House / Mbombela · Lowveld" wordmark; desktop links Stay, Venues, Conferences, Weddings, Explore, Contact + clay **Check availability** CTA; mobile hamburger → dropdown panel with links + CTA with phone number.
-- **Footer** (`src/components/Footer.tsx`): 4 columns (brand + tagline/grading, Visit with Maps pin/phone/email, Explore links incl. `/track` "Find my booking", Good to know + check-in/out times + **Staff login →** to `/admin`); copyright bar.
+- **Footer** (`src/components/Footer.tsx`): 4 columns (brand + tagline/grading, Visit with Maps pin/phone/email, Explore links incl. `/track` "Find my booking", `/kitchen` "From the kitchen", `/blog` "Stories", Good to know + check-in/out times + **Staff login →** to `/admin`); copyright bar.
 - **Concierge "Nala"** (`src/components/Concierge.tsx`, client): floating labeled **Chat** pill (bottom-right) opening a 320px panel — keyword-matching FAQ bot (prices, weddings, conferences, location, times, pools/family, WiFi/food, booking, human contact) with greeting, quick replies, and **Continue on WhatsApp →** handoff. Rule-based, not AI.
 - **Reveal** (`src/components/Reveal.tsx`): IntersectionObserver scroll-reveal wrapper (`threshold 0.12`, optional `slow`); disabled under reduced motion.
 - **HotelSchema** (`src/components/HotelSchema.tsx`): Hotel JSON-LD on every page (address, geo −25.4745/30.9707, phone, priceRange, amenities, areaServed, check-in/out).
@@ -106,7 +131,7 @@ Pure functions in `src/lib/quote.ts`; catalog in `src/lib/data.ts`.
 
 **Catalog:** 3 rooms (Standard R950, Executive R1250, Family R1450/night; sleeps/beds/perks/gallery) and 4 venues (Main Hall ≤800 R8500, Rali's Rock ≤400 R7500, Edamini Dam ≤300 R6500, Conference 1A&1B 10–60 R2500/day; layouts, best-for).
 
-**Stay pricing** (`buildStayQuote`): room rate × nights (min 1) + optional breakfast (R180 × pax × nights) + late checkout (R250 flat) + KMIA shuttle (R900 flat). **Venue pricing** (`buildVenueQuote`): hire × days + catering (half R420 / full R580 × pax × days) + AV R3500/day + décor R4500 flat + bar R2500/day. Both: `total` = sum of lines, `depositDue` = 50% rounded, `reference` = `NH-STAY|NH-EVENT-YYYY-XXXXXX` (ambiguous chars excluded), `createdAt` ISO.
+**Stay pricing** (`buildStayQuote`): room rate × nights (min 1) + optional breakfast (R180 × pax × nights) + late checkout (R250 flat) + KMIA shuttle (R900 flat). **Venue pricing** (`buildVenueQuote`): hire × days + catering (half R420 / full R580 × pax × days) + AV R3500/day + décor R4500 flat + bar R2500/day. Both: `total` = sum of lines, `depositDue` = 50% rounded, `reference` = `NH-STAY|NH-EVENT-YYYY-XXXXXX` (ambiguous chars excluded), `createdAt` ISO. Lifecycle `status`: `quoted → proof_received → confirmed → paid → checked_in → checked_out` (plus `cancelled`), advanced by staff from the `/admin` pipeline dropdown or `/admin/*` pages.
 
 **Validation** (`src/lib/validation.ts`, zod): room/venue slug enums from catalog; ISO dates; check-out after check-in; nothing in the past; adults 1–6, kids 0–4, days 1–14, pax 5–2000; name ≥2 chars; notes ≤1000; email-or-phone required (at least one), SA phone pattern.
 
@@ -125,12 +150,26 @@ Pure functions in `src/lib/quote.ts`; catalog in `src/lib/data.ts`.
 | `GET /api/quote/[reference]` | Guest lookup (powers `/track`) | none | → `{ok, quote}` / `404` |
 | `PATCH /api/quote/[reference]` | Attach `proofUrl` (guest) or change `status` (staff) | `x-admin-key` required for status | → updated quote / `401` |
 | `GET /api/admin/quotes?limit=` | Dashboard feed + pipeline stats | `x-admin-key` | → `{ok, quotes[], stats{total,count}}` |
+| `GET /api/admin/briefing` | Morning digest aggregates (arrivals, departures, events, money, housekeeping, maintenance) | `x-admin-key` or `Bearer CRON_SECRET` (Vercel cron 04:00 UTC) | → `{ok, date, arrivals[], departures[], events[], money[], housekeepingAttention[], maintenanceOpen[]}` |
+| `GET /api/admin/functions` | Function-sheet source: upcoming confirmed venue events + group stays | `x-admin-key` | → `{ok, events[], stays[]}` |
+| `GET/POST /api/admin/housekeeping` | Room task queue (upsert by room) | `x-admin-key` | `{room, state, note?, photoUrl?, updatedBy?}` → `{ok, task}` |
+| `GET/POST/PATCH/DELETE /api/admin/rota` | Shifts, leave requests, clock punches (`?type=shifts\|leave\|clock`, `?format=csv` for hours export) | `x-admin-key` | → `{ok, items[]}` / `{ok, item}` |
+| `GET/POST/PATCH /api/admin/maintenance` | Fix-it tickets | `x-admin-key` | → `{ok, items[]}` / `{ok, item}` |
+| `GET/POST/PATCH /api/admin/incidents` | Complaints, incidents, lost & found | `x-admin-key` | → `{ok, items[]}` / `{ok, item}` |
+| `GET/POST /api/admin/inbox` | Message threads by reference + staff replies | `x-admin-key` | `?reference=` → `{ok, messages[]}`; else `{ok, threads[]}` |
+| `POST /api/messages` | Guest message from `/track` | none (tied to reference) | `{reference, name, text≤1000}` → `{ok, message}` |
+| `POST /api/upload` | Proof + staff photo uploads (`folder`: `proofs` default, `maintenance`, `food`, `blog`) | `x-admin-key` required for non-proof folders | multipart → `{ok, url, public_id}`; proofs auto-link to quote |
+| `GET/POST/PATCH/DELETE /api/admin/dishes` | Chef dish manager | `x-admin-key` | → renders on `/kitchen` |
+| `GET /api/dishes` | Public menu (available only) | none | → `{ok, dishes[]}` |
+| `GET/POST/PATCH/DELETE /api/admin/posts` | Blog manager (slug auto-generated, publish flags) | `x-admin-key` | → renders on `/blog` |
+| `GET /api/blog` / `GET /api/blog/[slug]` | Public blog index / post (published only) | none | → `{ok, posts[]}` / `{ok, post}` |
 
 ---
 
 ## 8. Data: where everything is stored
 
-- **MongoDB** (`src/models/Quote.ts`, collection `nhquotes`): `reference` (unique, indexed), `kind`, `title`, `room|venue`, `roomSlug|venueSlug` (indexed), `nights|days`, `checkIn|checkOut|eventDate`, `lines[{label,amount}]`, `total`, `depositDue`, `input` (raw validated form), `status` (`quoted|proof_received|confirmed|cancelled`, indexed), `proofUrl`, `proofPublicId`, timestamps. Compound indexes for overlap queries.
+- **MongoDB** (`src/models/Quote.ts`, collection `nhquotes`): `reference` (unique, indexed), `kind`, `title`, `room|venue`, `roomSlug|venueSlug` (indexed), `nights|days`, `checkIn|checkOut|eventDate`, `lines[{label,amount}]`, `total`, `depositDue`, `input` (raw validated form), `status` (`quoted|proof_received|confirmed|paid|checked_in|checked_out|cancelled`, indexed), `proofUrl`, `proofPublicId`, timestamps. Compound indexes for overlap queries.
+- **MongoDB staff collections** (`src/models/staff.ts`): `NHHousekeeping` (room, state, note, photo, updatedBy), `NHShift` (date, role, staffName, shift), `NHLeave` (staffName, from, to, reason, pending/approved/declined), `NHClock` (staffName+date unique, clockIn, clockOut), `NHMaintenance` (title, location, urgent/routine/low, open/in_progress/done, detail, photo, assignedTo), `NHMessage` (reference, guest/staff, name, text), `NHIncident` (complaint/incident/lost/found, title, detail, booking ref, photo, open/resolved, reporter), `NHDish` (name, description, price?, Breakfast/Mains/Dessert/Function/Special, photo, available, postedBy), `NHPost` (slug unique, title, excerpt, body, cover, published, publishedAt).
 - **Cloudinary**: proof images/PDFs in `nutting-house/proofs/` (`src/lib/cloudinary.ts`).
 - **Browser**: `localStorage nh-quotes` (last 50 quotes, this device), `nh-house` (housekeeping states), `sessionStorage nh-admin-key`.
 - **Legacy fallback**: `data/quotes.jsonl` append (gitignored) when MongoDB is absent.
@@ -140,7 +179,7 @@ Pure functions in `src/lib/quote.ts`; catalog in `src/lib/data.ts`.
 
 ## 9. Environment variables (`.env.example` → `.env.local`, never committed)
 
-`MONGODB_URI` (Atlas Node driver string) · `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` · `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (image remote pattern) · `NEXT_PUBLIC_SITE_URL` (canonical/sitemap/OG, default `https://nuttinghouse.co.za`) · `ADMIN_KEY` (≥8 chars, staff login) · `NEXT_PUBLIC_BANK_NAME|ACCOUNT_NAME|ACCOUNT_NUMBER|BRANCH_CODE|ACCOUNT_TYPE` (EFT details shown on quotes). Typed accessors + `hasMongo()/hasCloudinary()/hasAdminKey()` in `src/lib/env.ts`.
+`MONGODB_URI` (Atlas Node driver string) · `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` · `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (image remote pattern) · `NEXT_PUBLIC_SITE_URL` (canonical/sitemap/OG, default `https://nuttinghouse.co.za`) · `ADMIN_KEY` (≥8 chars, staff login) · `CRON_SECRET` (optional; authorises Vercel cron for the briefing) · `NEXT_PUBLIC_BANK_*` (EFT details shown on quotes). Typed accessors + `hasMongo()/hasCloudinary()/hasAdminKey()` in `src/lib/env.ts`; staff-gate helper `requireAdmin()` / `requireAdminOrCron()` in `src/lib/adminAuth.ts`.
 
 ---
 
@@ -152,7 +191,7 @@ Every quote renders: reference header + meta pills → itemised lines → total 
 
 ## 11. SEO / GEO readiness
 
-Global metadata: title template, description, keywords (Mbombela/Nelspruit/Lowveld/Kruger terms), canonical, OG `en_ZA` + Twitter cards with hero image, robots directives, geo meta (`geo.region ZA-MP`, `geo.placename`, `geo.position`, `ICBM`). Structured data: Hotel JSON-LD sitewide + FAQPage JSON-LD on home. `sitemap.ts` (9 pages, priorities), `robots.ts` (allows all except `/admin`, `/api/`), `manifest.ts` (PWA installable, theme `#0e1f14`). Per-page titles/descriptions/canonicals on stay, venues, weddings, explore, contact; semantic headings; descriptive image alts; keyword-rich home copy + FAQ content matching the schema.
+Global metadata: title template, description, keywords (Mbombela/Nelspruit/Lowveld/Kruger terms), canonical, OG `en_ZA` + Twitter cards with hero image, robots directives, geo meta (`geo.region ZA-MP`, `geo.placename`, `geo.position`, `ICBM`). Structured data: Hotel JSON-LD sitewide + FAQPage JSON-LD on home. `sitemap.ts` (11 pages incl. `/kitchen`, `/blog`), `robots.ts` (allows all except `/admin`, `/api/`), `manifest.ts` (PWA installable, theme `#0e1f14`). Per-page titles/descriptions/canonicals on stay, venues, weddings, explore, contact, kitchen, blog (+ per-post OG/canonical). semantic headings; descriptive image alts; keyword-rich home copy + FAQ content matching the schema.
 
 ---
 
@@ -164,10 +203,10 @@ Palette (`globals.css` `@theme`): forest 950 `#0e1f14` / 900 `#14291b` / 800 `#1
 
 ## 13. What is deliberately NOT done yet (before going live)
 
-1. Fill `.env.local`: MongoDB, Cloudinary, `ADMIN_KEY`, real `NEXT_PUBLIC_BANK_*`, `NEXT_PUBLIC_SITE_URL`.
-2. Replace `Reviews.tsx` placeholders with real Google reviews.
-3. Test end-to-end on `npm run dev`: `/book` quote → `/track` lookup → proof upload → `/admin` unlock → Confirm.
-4. Run `npm run build` and deploy (Vercel: import repo, add env vars).
+1. Fill `.env.local`: MongoDB, Cloudinary, `ADMIN_KEY`, real `NEXT_PUBLIC_BANK_*`, `NEXT_PUBLIC_SITE_URL` (plus `CRON_SECRET` if you want the Vercel briefing cron authorised).
+2. Replace `Reviews.tsx` placeholders with real Google reviews; publish the first dishes (`/admin/dishes`) and blog posts (`/admin/blog`) so `/kitchen` and `/blog` aren't empty.
+3. Test end-to-end on `npm run dev`: `/book` quote → `/track` lookup + guest message → proof upload → `/admin` unlock → pipeline advance → briefing/arrivals/functions pages.
+4. Run `npm run build` and deploy (Vercel: import repo, add env vars; `vercel.json` schedules the briefing cron at 04:00 UTC).
 5. Later: Paystack/Stripe (`PAYMENTS` stub ready — reference + totals already payment-ready), wedding-specific builder, gallery lightbox, rota/leave/maintenance in admin, AI concierge.
 
 ## 14. Known limitations
